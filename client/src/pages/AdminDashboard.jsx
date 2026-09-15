@@ -1,16 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../api/axios";
+import {
+  CheckIcon,
+  ListIcon,
+  PencilIcon,
+  ShieldIcon,
+  TrashIcon,
+  UserIcon,
+  UsersIcon,
+} from "../components/Icons";
 
 const ROLE_BADGE = {
-  admin: "bg-yellow-400 text-black",
-  user: "bg-yellow-400/10 text-yellow-300 border border-yellow-400/40",
+  admin: "bg-primary text-white",
+  user: "border border-hairline text-ink-muted-80",
 };
 
-function StatCard({ label, value, color }) {
+function StatCard({ icon: Icon, label, value, tint }) {
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    let raf;
+    const start = performance.now();
+    const duration = 800;
+
+    const step = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(Math.round(value * eased));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+
   return (
-    <div className={`rounded-xl border-2 p-5 ${color}`}>
-      <p className="text-3xl font-black text-white">{value}</p>
-      <p className="text-sm font-semibold text-yellow-100/60 mt-1">{label}</p>
+    <div className="card p-6 transition-transform duration-300 ease-apple hover:-translate-y-1">
+      <span
+        className={`flex h-11 w-11 items-center justify-center rounded-md ${tint}`}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <p className="mt-4 text-[34px] font-display font-semibold leading-[1.1] tracking-[-0.02em] text-ink">
+        {display}
+      </p>
+      <p className="mt-1 text-[13px] font-medium text-ink-muted-48">{label}</p>
     </div>
   );
 }
@@ -19,6 +53,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editRole, setEditRole] = useState("");
   const [editPassword, setEditPassword] = useState("");
@@ -47,6 +82,7 @@ export default function AdminDashboard() {
 
   const startEdit = (user) => {
     setEditingId(user._id);
+    setConfirmDeleteId(null);
     setEditName(user.name);
     setEditRole(user.role);
     setEditPassword("");
@@ -94,18 +130,13 @@ export default function AdminDashboard() {
   };
 
   const deleteUser = async (user) => {
-    if (
-      !window.confirm(
-        `Delete user "${user.name}" and all of their to-dos? This cannot be undone.`
-      )
-    ) {
-      return;
-    }
-
+    setError("");
+    setSuccess("");
     try {
       await api.delete(`/api/admin/users/${user._id}`);
       setUsers((prev) => prev.filter((u) => u._id !== user._id));
-      setSuccess("User deleted");
+      setConfirmDeleteId(null);
+      setSuccess(`User "${user.name}" and all of their to-dos were deleted`);
       fetchData();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete user");
@@ -113,87 +144,114 @@ export default function AdminDashboard() {
   };
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-black py-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="min-h-[calc(100dvh-6.4rem)] bg-canvas-parchment py-12">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-white">
-            Admin <span className="text-yellow-400">Dashboard</span>
+          <h1 className="text-[32px] font-display font-semibold leading-[1.1] tracking-[-0.02em] text-ink">
+            Admin Dashboard
           </h1>
-          <p className="text-yellow-100/60 mt-1">
+          <p className="mt-1.5 text-[14px] text-ink-muted-48">
             Manage all users and their accounts.
           </p>
         </div>
 
         {error && (
-          <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/40 text-red-300 text-sm font-semibold mb-6">
+          <div className="mb-6 animate-scale-in rounded-lg bg-danger/10 px-4 py-3 text-[14px] font-medium text-danger">
             {error}
           </div>
         )}
         {success && (
-          <div className="px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-sm font-semibold mb-6">
+          <div className="mb-6 animate-scale-in rounded-lg bg-success/10 px-4 py-3 text-[14px] font-medium text-success">
             {success}
           </div>
         )}
 
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
-            <StatCard label="Total Users" value={stats.totalUsers} color="border-yellow-400/40 bg-yellow-400/5" />
-            <StatCard label="Admins" value={stats.adminCount} color="border-yellow-400 bg-yellow-400/10" />
-            <StatCard label="Regular Users" value={stats.userCount} color="border-yellow-400/40 bg-yellow-400/5" />
-            <StatCard label="Total To-Dos" value={stats.totalTodos} color="border-yellow-400/40 bg-yellow-400/5" />
-            <StatCard label="Completed" value={stats.completedTodos} color="border-emerald-500/40 bg-emerald-500/5" />
+          <div className="mb-10 grid grid-cols-2 gap-5 lg:grid-cols-5">
+            <StatCard
+              icon={UsersIcon}
+              label="Total Users"
+              value={stats.totalUsers}
+              tint="bg-primary/10 text-primary"
+            />
+            <StatCard
+              icon={ShieldIcon}
+              label="Admins"
+              value={stats.adminCount}
+              tint="bg-primary/10 text-primary"
+            />
+            <StatCard
+              icon={UserIcon}
+              label="Regular Users"
+              value={stats.userCount}
+              tint="bg-primary/10 text-primary"
+            />
+            <StatCard
+              icon={ListIcon}
+              label="Total To-Dos"
+              value={stats.totalTodos}
+              tint="bg-primary/10 text-primary"
+            />
+            <StatCard
+              icon={CheckIcon}
+              label="Completed"
+              value={stats.completedTodos}
+              tint="bg-success/10 text-success"
+            />
           </div>
         )}
 
-        <div className="rounded-2xl border-2 border-yellow-400 overflow-hidden">
-          <div className="bg-yellow-400 px-6 py-4">
-            <h2 className="font-black text-black text-lg">All Users</h2>
+        <div className="card overflow-hidden">
+          <div className="hidden grid-cols-12 gap-4 border-b border-divider-soft px-6 py-3.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-ink-muted-48 md:grid">
+            <div className="col-span-3">Name</div>
+            <div className="col-span-3">Email</div>
+            <div className="col-span-2">Role</div>
+            <div className="col-span-2">Joined</div>
+            <div className="col-span-2 text-right">Actions</div>
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-16 bg-neutral-900">
-              <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+            <div className="space-y-4 p-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="skeleton h-4 w-40 bg-hairline" />
+                  <div className="skeleton h-4 w-56 bg-hairline" />
+                  <div className="skeleton h-6 w-16 rounded-pill bg-hairline" />
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="bg-neutral-900 divide-y divide-yellow-400/10">
-              <div className="hidden md:grid grid-cols-12 px-6 py-3 text-xs font-bold text-yellow-300 uppercase tracking-wide">
-                <div className="col-span-3">Name</div>
-                <div className="col-span-3">Email</div>
-                <div className="col-span-2">Role</div>
-                <div className="col-span-2">Joined</div>
-                <div className="col-span-2 text-right">Actions</div>
-              </div>
-
+            <div className="divide-y divide-divider-soft">
               {users.map((user) => (
                 <div key={user._id} className="px-6 py-4">
                   {editingId === user._id ? (
-                    <div className="space-y-3 md:space-y-0 md:flex md:items-end md:gap-3">
+                    <div className="space-y-3 md:flex md:items-end md:gap-3 md:space-y-0">
                       <div className="flex-1">
-                        <label className="block text-xs font-semibold text-yellow-300 mb-1">
+                        <label className="mb-1.5 block text-[12px] font-semibold text-ink-muted-80">
                           Name
                         </label>
                         <input
                           type="text"
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-black border-2 border-yellow-400 text-white text-sm focus:outline-none"
+                          className="input"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs font-semibold text-yellow-300 mb-1">
+                        <label className="mb-1.5 block text-[12px] font-semibold text-ink-muted-80">
                           Role
                         </label>
                         <select
                           value={editRole}
                           onChange={(e) => setEditRole(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-black border-2 border-yellow-400 text-white text-sm focus:outline-none"
+                          className="input"
                         >
                           <option value="user">user</option>
                           <option value="admin">admin</option>
                         </select>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs font-semibold text-yellow-300 mb-1">
+                        <label className="mb-1.5 block text-[12px] font-semibold text-ink-muted-80">
                           New password (optional)
                         </label>
                         <input
@@ -201,59 +259,83 @@ export default function AdminDashboard() {
                           value={editPassword}
                           onChange={(e) => setEditPassword(e.target.value)}
                           placeholder="Leave blank to keep"
-                          className="w-full px-3 py-2 rounded-lg bg-black border-2 border-yellow-400/25 text-white text-sm placeholder-yellow-100/30 focus:outline-none"
+                          className="input"
                         />
                       </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => saveEdit(user._id)}
-                          className="px-4 py-2 rounded-lg bg-yellow-400 text-black font-bold text-sm hover:bg-yellow-300 transition-colors"
+                          className="btn btn-primary !px-4 !py-2 text-[14px]"
                         >
                           Save
                         </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="px-4 py-2 rounded-lg border-2 border-yellow-100/30 text-yellow-100/70 font-semibold text-sm hover:border-yellow-400 hover:text-yellow-400 transition-colors"
-                        >
+                        <button onClick={cancelEdit} className="btn btn-pearl">
                           Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-0 items-center">
+                    <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-12 md:gap-4">
                       <div className="col-span-3">
-                        <p className="font-bold text-white text-sm break-words">{user.name}</p>
+                        <p className="break-words text-[15px] font-semibold text-ink">
+                          {user.name}
+                        </p>
                       </div>
                       <div className="col-span-3">
-                        <p className="text-yellow-100/60 text-sm break-words">{user.email}</p>
+                        <p className="break-words text-[14px] text-ink-muted-48">
+                          {user.email}
+                        </p>
                       </div>
                       <div className="col-span-2">
                         <span
-                          className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
-                            ROLE_BADGE[user.role]
-                          }`}
+                          className={`badge px-3 py-1 uppercase ${ROLE_BADGE[user.role]}`}
                         >
                           {user.role}
                         </span>
                       </div>
                       <div className="col-span-2">
-                        <p className="text-yellow-100/40 text-sm">
+                        <p className="text-[14px] text-ink-muted-48">
                           {new Date(user.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="col-span-2 flex gap-2 md:justify-end mt-2 md:mt-0">
-                        <button
-                          onClick={() => startEdit(user)}
-                          className="px-3 py-1.5 rounded-md text-sm font-semibold border border-yellow-400/40 text-yellow-400 hover:bg-yellow-400 hover:text-black transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => deleteUser(user)}
-                          className="px-3 py-1.5 rounded-md text-sm font-semibold border border-red-500/40 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
-                        >
-                          Delete
-                        </button>
+                      <div className="col-span-2 flex justify-start gap-1.5 md:justify-end">
+                        {confirmDeleteId === user._id ? (
+                          <div className="animate-pop flex items-center gap-2">
+                            <span className="hidden text-[13px] text-ink-muted-48 sm:inline">
+                              Delete?
+                            </span>
+                            <button
+                              onClick={() => deleteUser(user)}
+                              className="btn btn-danger !px-3.5"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="btn btn-pearl"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => startEdit(user)}
+                              className="btn btn-pearl !px-3.5"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(user._id)}
+                              className="btn btn-pearl !px-3.5 text-danger hover:bg-danger/5"
+                              aria-label={`Delete ${user.name}`}
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}

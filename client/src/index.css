@@ -1,32 +1,221 @@
 @import "tailwindcss";
 
-html {
-  scroll-behavior: smooth;
+@theme {
+  /* ---- Brand & Accent ---- */
+  --color-primary: #0066cc;
+  --color-primary-focus: #0071e3;
+  --color-primary-on-dark: #2997ff;
+
+  /* ---- Surface ---- */
+  --color-canvas: #ffffff;
+  --color-canvas-parchment: #f5f5f7;
+  --color-surface-pearl: #fafafc;
+  --color-surface-tile-1: #272729;
+  --color-surface-tile-2: #2a2a2c;
+  --color-surface-tile-3: #252527;
+  --color-surface-black: #000000;
+
+  /* ---- Text ---- */
+  --color-ink: #1d1d1f;
+  --color-body-muted: #cccccc;
+  --color-ink-muted-80: #333333;
+  --color-ink-muted-48: #7a7a7a;
+
+  /* ---- Hairlines & Borders ---- */
+  --color-divider-soft: #f0f0f0;
+  --color-hairline: #e0e0e0;
+
+  /* ---- Semantic ---- */
+  --color-success: #34c759;
+  --color-danger: #ff3b30;
+
+  /* ---- Typography ---- */
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter", "SF Pro Display", system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* ---- Radii ---- */
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
+
+  /* ---- Elevation ---- */
+  --shadow-product: 3px 5px 30px 0 rgb(0 0 0 / 0.22);
+
+  /* ---- Motion ---- */
+  --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --animate-fade-up: fade-up 0.7s var(--ease-apple) both;
+  --animate-fade-up-slow: fade-up 1s var(--ease-apple) both;
+  --animate-scale-in: scale-in 0.45s var(--ease-apple) both;
+  --animate-pop: pop 0.4s var(--ease-apple) both;
+  --animate-rise: rise 0.9s var(--ease-apple) both;
+  --animate-float-y: float-y 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.75);
+    }
+    70% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes float-y {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
 }
 
-body {
-  background-color: #000000;
-  color: #ffffff;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas-parchment);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.47;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-canvas);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-canvas-parchment);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-hairline);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-muted-48);
+  }
+
+  button {
+    cursor: pointer;
+  }
 }
 
-::selection {
-  background-color: #facc15;
-  color: #000000;
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 text-[17px] leading-none transition-all duration-150 ease-apple active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-focus disabled:pointer-events-none disabled:opacity-50;
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-}
+@layer components {
+  .btn-primary {
+    @apply btn rounded-pill bg-primary px-[22px] py-[11px] text-white hover:bg-primary-focus;
+  }
 
-::-webkit-scrollbar-track {
-  background: #0a0a0a;
-}
+  .btn-secondary {
+    @apply btn rounded-pill border border-primary bg-transparent px-[22px] py-[11px] text-primary hover:bg-primary/5;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: #facc15;
-  border-radius: 5px;
-}
+  .btn-dark {
+    @apply btn rounded-sm bg-ink px-[15px] py-2 text-[14px] text-white hover:bg-surface-tile-1;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #eab308;
+  .btn-pearl {
+    @apply btn rounded-md border-[3px] border-divider-soft bg-surface-pearl px-[14px] py-2 text-[14px] text-ink-muted-80 hover:bg-canvas hover:text-ink;
+  }
+
+  .btn-danger {
+    @apply btn rounded-pill border border-danger/30 bg-transparent px-[14px] py-2 text-[14px] text-danger hover:bg-danger/5;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full text-[12px] font-semibold tracking-[-0.005em];
+  }
+
+  .input {
+    @apply w-full rounded-pill border border-hairline bg-canvas px-5 py-3 text-[17px] text-ink transition-all duration-150 ease-apple placeholder:text-ink-muted-48 focus:border-primary-focus focus:outline-none focus:ring-4 focus:ring-primary-focus/15;
+  }
+
+  .card {
+    @apply rounded-lg border border-hairline bg-canvas;
+  }
+
+  .nav-link {
+    @apply rounded-pill px-3 py-1.5 text-[12px] tracking-[-0.01em] transition-colors duration-150 ease-apple;
+  }
+
+  .skeleton {
+    @apply animate-shimmer rounded-md;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.55),
+      transparent
+    );
+    background-size: 200% 100%;
+  }
 }

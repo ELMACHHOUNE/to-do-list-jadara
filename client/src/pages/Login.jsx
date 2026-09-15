@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { EyeIcon, EyeOffIcon } from "../components/Icons";
 
 export default function Login() {
   const { login } = useAuth();
@@ -8,6 +9,7 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -32,68 +34,95 @@ export default function Login() {
   };
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-black flex items-center justify-center px-4 py-16">
+    <section className="flex min-h-[calc(100dvh-6.4rem)] items-center justify-center bg-canvas-parchment px-4 py-16">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border-2 border-yellow-400 bg-neutral-900 shadow-2xl shadow-yellow-400/10 overflow-hidden">
-          <div className="bg-yellow-400 px-8 py-5">
-            <h1 className="text-2xl font-black text-black text-center">
-              Welcome back to Jadara
+        <div className="card animate-scale-in p-8 sm:p-10">
+          <div className="mb-8 text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-ink text-[24px] font-bold text-canvas">
+              J
+            </span>
+            <h1 className="mt-5 text-[28px] font-display font-semibold leading-[1.1] tracking-[-0.02em] text-ink">
+              Welcome back
             </h1>
-            <p className="text-sm text-black/70 text-center font-medium">
+            <p className="mt-2 text-[14px] text-ink-muted-48">
               Log in to manage your to-dos
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 space-y-5">
-            {error && (
-              <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/40 text-red-300 text-sm font-semibold">
-                {error}
-              </div>
-            )}
+          {error && (
+            <div className="mb-6 rounded-lg bg-danger/10 px-4 py-3 text-[14px] font-medium text-danger">
+              {error}
+            </div>
+          )}
 
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-yellow-300 mb-1.5">
+              <label
+                htmlFor="email"
+                className="mb-2 block text-[13px] font-semibold text-ink-muted-80"
+              >
                 Email
               </label>
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-2.5 rounded-lg bg-black border-2 border-yellow-400/25 text-white placeholder-yellow-100/30 focus:outline-none focus:border-yellow-400 transition-colors"
+                className="input"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-yellow-300 mb-1.5">
+              <label
+                htmlFor="password"
+                className="mb-2 block text-[13px] font-semibold text-ink-muted-80"
+              >
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-lg bg-black border-2 border-yellow-400/25 text-white placeholder-yellow-100/30 focus:outline-none focus:border-yellow-400 transition-colors"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Your password"
+                  className="input pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-muted-48 transition-colors duration-150 ease-apple hover:text-ink active:scale-90"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg bg-yellow-400 text-black font-bold text-lg hover:bg-yellow-300 disabled:opacity-50 transition-colors"
-            >
-              {loading ? "Logging in..." : "Login"}
+            <button type="submit" disabled={loading} className="btn btn-primary w-full py-4">
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Logging in…
+                </>
+              ) : (
+                "Log in"
+              )}
             </button>
           </form>
 
-          <div className="px-8 pb-8 text-center text-sm text-yellow-100/60">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-yellow-400 font-semibold hover:underline">
-              Register here
+          <p className="mt-7 text-center text-[14px] text-ink-muted-48">
+            Don&rsquo;t have an account?{" "}
+            <Link
+              to="/register"
+              className="font-semibold text-primary transition-colors duration-150 ease-apple hover:text-primary-focus"
+            >
+              Create one
             </Link>
-          </div>
+          </p>
         </div>
       </div>
     </section>
